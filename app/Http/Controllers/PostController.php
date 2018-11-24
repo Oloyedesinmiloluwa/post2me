@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Http\Request;
 use App\Post;
-
+use App\Like;
+use Auth;
+use Illuminate\Support\Facades\Mail;
+use App\Comment;
+use App\Tag;
 class PostController extends Controller
 {
     public function __construct()
@@ -18,7 +23,12 @@ class PostController extends Controller
      */
     public function index(Post $post)
     {
-            return $post->orderBy('id', 'DESC')->with('user')->get();
+        if ($allPost = Redis::get('posts')) {
+            return json_decode($allPost);
+        }
+        $postToSend = $post->orderBy('id', 'DESC')->with('user')->get();
+        Redis::set('posts', $postToSend);
+            return response()->json($postToSend, 200);
     }
 
     /**
@@ -46,7 +56,11 @@ class PostController extends Controller
         $request->userId = $request->userId ? $request->userId : 1;
         // return $request->userId;
         $post = Post::create($request->all());
+        if($request->tags) Tag::create(['postId' => $post->id, 'value' => $request->tags]);
         $post->user = $post->user;
+        // $post->tags;
+        $tag = $post->tags()->get(['value']);
+        $post->tags = $tag[0]['value'];
         return response()->json(['message'=>'successful', 'data' => $post], 201);
     }
 
@@ -60,10 +74,38 @@ class PostController extends Controller
     {
         // return $postId;
         // $postToSend = Post::find($postId->id)->user;
-        $postId->user = $postId->user;
+      $postId->user;
+      $postId->tags;
         return response()->json(['data' => $postId], 201);
     }
 
+    public function comment(Post $postId)
+    {
+        Comment::create(['postId' => $postId->id, 'body' => request()->body, 'userId' => 2]);
+        $postId->comments = $postId->comments;
+        return response()->json(['message' => 'comment has been added!', 'data' => $postId]);
+    }
+    public function like(Post $postId)
+    {
+        // dd(Auth::user());
+        $existingLike = Like::where('postId', '=', $postId->id)
+        ->where('userId', 3);
+        $postId->likes = $postId->likes()->count();
+        if($existingLike->get()->isEmpty()) {
+            Like::create(['postId' => $postId->id, 'userId' => 3]);
+            Mail::send('email', ['name' => $postId->user->name, 'likes' => $postId->likes], function ($message) use($postId) {
+                $message->to($postId->user->email, $postId->user->name)->subject('Post2Me - You got new likes');
+                $message->from('no-reply@post2me.com', 'Post2Me');
+            });
+        }
+        else $existingLike->delete();
+        // if(Like::where('postId', '=', $postId))
+        // $newLike = Like::firstOrCreate(['postId' => $postId->id, 'userId' => 1]);
+        // $postWith = Post::find($postId->id)->with('likes')->get();
+        
+        $postId->userLikes = $postId->userLikes()->get(['name', 'email']);
+        return response()->json(['message' => 'article liked!', 'data' => $postId]);
+    }
     /**
      * Show the form for editing the specified resource.
      *

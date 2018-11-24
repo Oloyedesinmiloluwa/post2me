@@ -12,6 +12,7 @@
 */
 
 Route::get('/', function () {
+    // return Redis::incr('visits');
     return view('welcome');
 });
 

@@ -22,5 +22,11 @@ Route::get('/v1/posts', 'PostController@index');
 Route::post('/v1/posts', 'PostController@store');
 Route::get('/v1/posts/{postId}', 'PostController@show');
 Route::put('/v1/posts/{postId}', 'PostController@update');
+Route::put('/v1/posts/{postId}/like', 'PostController@like');
+Route::put('/v1/posts/{postId}/comment', 'PostController@comment');
 Route::delete('/v1/posts/{postId}', 'PostController@destroy');
-Route::get('/v1/users/{userId}', 'AuthorController@show');
+Route::prefix('/v1/users')->group(function(){
+    Route::get('', 'AuthorController@index');
+    Route::get('/{userId}', 'AuthorController@show');
+
+});

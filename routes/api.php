@@ -25,8 +25,16 @@ Route::put('/v1/posts/{postId}', 'PostController@update');
 Route::put('/v1/posts/{postId}/like', 'PostController@like');
 Route::put('/v1/posts/{postId}/comment', 'PostController@comment');
 Route::delete('/v1/posts/{postId}', 'PostController@destroy');
-Route::prefix('/v1/users')->group(function(){
+Route::prefix('/v1/auth')->group(function(){
+    Route::post('/login', 'AuthController@login');
+});
+Route::prefix('/v1/users')->group(function()
+{
     Route::get('', 'AuthorController@index');
+    Route::put('/{user}/friends/{friendId}', 'AuthorController@sendFriendRequest');
     Route::get('/{userId}', 'AuthorController@show');
+    Route::put('/{user}/friends/{friendId}/accept', 'AuthorController@acceptFriendRequest');
+    Route::get('/{user}/friends', 'AuthorController@listFriends');
+    // Route::get('/{user}/friends', 'AuthorController@listFriends');
 
 });

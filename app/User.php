@@ -14,6 +14,19 @@ class User extends Authenticatable
     {
        return $this->hasMany('App\Post','userId');
     }
+    
+    public function friends()
+    {
+        return $this->belongsToMany('App\User','friend_user', 'userId', 'friendId', 'id', 'id');
+
+    }
+
+    public function myfriends()
+    {
+        return $this->belongsToMany('App\User','friend_user', 'friendId', 'userId', 'id', 'id');
+
+    }
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,6 +42,6 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'created_at', 'updated_at',
     ];
 }

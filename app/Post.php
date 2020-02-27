@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    use CamelCase;
     protected $fillable = ['body', 'userId', 'image', 'like', 'tag'];
     public function user()
     {
